@@ -4,12 +4,14 @@ import re
 # A die class
 class Die:
     
-    def __init__(self, sides = 6, kept = True):
-        self.sides = sides
-        if sides <= 0:
+    def __init__(self, sides = 6, keep = True):
+        if sides < 2:
             raise ValueError('Incorrect number of sides')
-        self.kept = kept
-        self.result = None
+
+        # Variable definitions
+        self.sides: int = sides # How many sides
+        self.keep: bool = keep # Should the die be kept in a roll
+        self.result: int = None # The result
     
     def __str__(self):
         return str(self.result)
@@ -43,55 +45,106 @@ class Die:
 
     # Roll the die
     def roll(self):
-        self.result = random.randint(1, self.sides)
-        return self.result
+        if self.sides > 1:
+            self.result = random.randint(1, self.sides)
+            return self.result
+        elif self.sides == 1:
+            return 1
+        else:
+            raise ValueError('Incorrect number of sides')
 
 # A dice roll class
 class Roller:
-    expr_regex = re.compile(r'^(\d+)d(\d+)(!)?((k|d)(h|l)?\d+)?$', re.IGNORECASE)
     
-    def __init__(self, expression):
-        self.details = None
-        self.result = None
-        self._dice = None
+    # Dice roll regex
+    expr_regex = re.compile(r'^(\d+)d(\d+)(!)?((k|d)(h|l)?(\d+))?$', re.IGNORECASE)
+    
+    def __init__(self, expression: str):
+
         match = self.expr_regex.match(expression)
         
+        # Extract data from the expression
         if match:
+            # Variable definitions
+            self.details: str = None # Roll details
+            self.result: int = None # Roll result
+            self._dice: list = None # List of appropriate Dice objects
+            self._starting_dice: int = None # Number of starting dice
+            self._sides: int = None # Number of sides of dice to roll
+            self._exploding: bool = None # Whether the dice can explode
+            self._keep_info: tuple = None # Tuple of (string, string, int) ([k]eep/[d]rop, [h]igh/[l]ow, how_many)
+            
             groups = match.groups()
             
             self._starting_dice = int(groups[0])
             self._sides = int(groups[1])
             self._exploding = groups[2] != None
 
-            self._keep_info = groups[3] # Save keep/drop info
+            # Save keep/drop info
             if groups[3]:
-                if not groups[5]:
-                    if groups[4] == 'k':
-                        self._keep_info = '{0}h{1}'.format(self._keep_info[0], self._keep_info[1:])
-                    elif groups[4] == 'd':
-                        self._keep_info = '{0}l{1}'.format(self._keep_info[0], self._keep_info[1:])
-                    else:
-                        raise ValueError('Inappropriate dice expression')
+                keep_info = [groups[4].lower(), groups[5], int(groups[6])]
+                
+                # Check if keep/drop number is appropriate
+                if keep_info[2] > self._starting_dice:
+                    raise ValueError('Inappropriate keep/drop number of dice')
+                
+                # Check if k# or d# shorthand used
+                if not keep_info[1]:
+                    keep_info[1] = 'h' if keep_info[0] == 'k' else 'l'
+                    self._keep_info = tuple(keep_info)
+                else:
+                    # Convert to lowercase for convenience
+                    self._keep_info = (keep_info[0], keep_info[1].lower(), keep_info[2])
         else:
             raise ValueError('Inappropriate dice expression')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.details
 
-    def roll(self):
+    def _keep(self):
+        # Find the list of dice to keep
+        keep = sorted(self._dice)[-self._keep_info[2]:] if self._keep_info[1] == 'h' else sorted(self._dice)[:self._keep_info[2]]
+
+        # Flag all dice as to drop
+        for d in self._dice:
+            d.keep = False
+        
+        # Flag the kept dice
+        for k in keep:
+            self._dice[self._dice.index(k)].keep = True
+
+    def _drop(self):
+        # Find the list of all dice to drop
+        drop = sorted(self._dice)[-self._keep_info[2]:] if self._keep_info[1] == 'h' else sorted(self._dice)[:self._keep_info[2]]
+
+        # Flag all the dice as to keep
+        for d in self._dice:
+            d.keep = True
+        
+        # Flag the dropped dice
+        for k in keep:
+            self._dice[self._dice.index(k)].keep = False
+
+    def roll(self) -> int:
         self._dice = [Die(self._sides) for i in range(self._starting_dice)] # Fill the list of dice
         
         # Roll the dice
         i = 0
         while i < len(self._dice):
-            if self._dice[i].roll() == self._sides and self._exploding:
+            if self._dice[i].roll() == self._sides and self._exploding: # Check if exploded if possible
                 self._dice.insert(i + 1, Die(self._sides))
             i += 1
+        
+        if self._keep_info:
+            if self._keep_info[0] == 'k':
+                self._keep()
+            elif self._keep_info[0] == 'd':
+                self._drop()
         
         # Add the dice together
         self.result = 0
         for d in self._dice:
-            if d.kept:
+            if d.keep:
                 self.result += d.result
 
         # Fetch details
@@ -105,7 +158,7 @@ class Roller:
                 first = False
             
             # Check if the die is kept
-            if not d.kept:
+            if not d.keep:
                 self.details += '#'
 
             # Add the die's result
