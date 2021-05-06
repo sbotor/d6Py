@@ -8,7 +8,7 @@ class Die:
         if sides < 2:
             raise ValueError('Invalid number of sides')
 
-        # Variable definitions
+        # Variable declarations
         self.sides: int = sides # How many sides
         self.keep: bool = keep # Should the die be kept in a roll
         self.result: int = None # The result
@@ -58,10 +58,10 @@ class Roller:
     _dice_regex = re.compile(r'^(\d+)?d(\d+)(!)?((k|d)(h|l)?(\d+))?$', re.IGNORECASE)
     
     def __init__(self, expression: str):
-        # Variable definitions
-        self.details: str = None # Roll details
+        # Variable declarations
+        self.details: str = '' # Roll details
         self.result: int = None # Roll result
-        self._dice: list = None # List of appropriate Dice objects
+        self._dice: list = [] # List of appropriate Dice objects
         self._starting_dice: int = None # Number of starting dice
         self._sides: int = None # Number of sides of dice to roll
         self._exploding: bool = None # Whether the dice can explode

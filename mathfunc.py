@@ -1,10 +1,6 @@
 import math
 import statistics
 
-# Function definitions
-def fmax(*args: float) -> float:
-    pass
-
 # Function dictionary
 funcs = {
     # Misc

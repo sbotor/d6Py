@@ -55,9 +55,9 @@ class Converter():
         FUNC = 5 # A function name
         NEG = 6 # Negation
 
-    def __init__(self, expression: str = ''):
-        # Variable definitions
-        self.expression: str = expression # Input expression
+    def __init__(self, expression: str = None):
+        # Variable declarations
+        self.expression: str = expression if expression else '' # Input expression
         self.details: str = '' # Details including dice rolls
         self.converted: list = [] # Output list of tokens converted into RPN
 
@@ -148,8 +148,7 @@ class Converter():
         self._arg_c.append(1)
     
     def convert(self, expression: str = None) -> list:
-        if expression != None:
-            self.expression = expression
+        self.expression = expression if expression else self.expression
         
         if not self.expression:
             raise ValueError('The expression to convert is empty')
@@ -255,9 +254,9 @@ class Evaluator():
 
     _func_regex = re.compile(r'^([A-Za-z]{3}[A-Za-z]*)(\d+)$') # Function regex
 
-    def __init__(self, tokens = []):
-        # Variable definitions
-        self.tokens = tokens
+    def __init__(self, tokens = None):
+        # Variable declarations
+        self.tokens = tokens if tokens else []
         self.result = None # Result of the evaluation
 
         self._numbers: deque = deque() # A deque of numbers used during evaluation
@@ -267,8 +266,7 @@ class Evaluator():
         self._numbers: deque()
     
     def evaluate(self, tokens = None) -> float:
-        if tokens != None:
-            self.tokens = tokens
+        self.tokens = tokens if tokens else self.tokens
 
         if not self.tokens:
             raise ValueError('Nothing to evaluate')
@@ -326,4 +324,28 @@ class Evaluator():
                 raise ValueError(f'Invalid token "{token}" during evaluation')
 
         self.result = float(self._numbers.pop())
+        return self.result
+
+class Calculator:
+
+    def __init__(self, expression: str = None):
+        # Variable declarations
+        self.expression: str = expression if expression else '' # Expression to calculate
+        self.result: float = None # Result of the calculations
+        self.details: str = '' # Details including dice results
+
+    def clear(self):
+        self.result = None
+        self.details = ''
+    
+    def calculate(self, expression: str = None) -> float:
+        self.expression: str = expression if expression else self.expression
+
+        self.clear()
+
+        conv = Converter(self.expression)
+        ev = Evaluator(conv.convert())
+        self.result = ev.evaluate()
+        self.details = conv.details
+        
         return self.result
