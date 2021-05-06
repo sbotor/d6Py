@@ -6,7 +6,7 @@ class Die:
     
     def __init__(self, sides = 6, keep = True):
         if sides < 2:
-            raise ValueError('Incorrect number of sides')
+            raise ValueError('Invalid number of sides')
 
         # Variable definitions
         self.sides: int = sides # How many sides
@@ -49,7 +49,7 @@ class Die:
             self.result = random.randint(1, self.sides)
             return self.result
         else:
-            raise ValueError('Incorrect number of sides')
+            raise ValueError('Invalid number of sides')
 
 # A dice roll class
 class Roller:
@@ -72,19 +72,19 @@ class Roller:
             self._exploding: bool = None # Whether the dice can explode
             self._keep_info: tuple = None # Tuple of (string, string, int) ([k]eep/[d]rop, [h]igh/[l]ow, how_many)
             
-            groups = match.groups()
+            #groups = match.groups()
             
-            self._starting_dice = int(groups[0])
-            self._sides = int(groups[1])
-            self._exploding = groups[2] != None
+            self._starting_dice = int(match[1])
+            self._sides = int(match[2])
+            self._exploding = match[3] != None
 
             # Save keep/drop info
-            if groups[3]:
-                keep_info = [groups[4].lower(), groups[5], int(groups[6])]
+            if match[4]:
+                keep_info = [match[5].lower(), match[6], int(match[7])]
                 
                 # Check if keep/drop number is appropriate
                 if keep_info[2] > self._starting_dice:
-                    raise ValueError('Inappropriate keep/drop number of dice')
+                    raise ValueError('Invalid keep/drop number of dice')
                 
                 # Check if k# or d# shorthand used
                 if not keep_info[1]:
@@ -94,7 +94,7 @@ class Roller:
                     # Convert to lowercase for convenience
                     self._keep_info = (keep_info[0], keep_info[1].lower(), keep_info[2])
         else:
-            raise ValueError('Inappropriate dice expression')
+            raise ValueError('Invalid dice expression')
 
     def __str__(self) -> str:
         return self.details
@@ -102,7 +102,6 @@ class Roller:
     def __len__(self) -> int:
         return len(self._dice)
 
-    # TODO: doesn't work
     def _keep(self):
         # Find the list of dice to keep
         keep = sorted(self._dice)[-self._keep_info[2]:] if self._keep_info[1] == 'h' else sorted(self._dice)[:self._keep_info[2]]
@@ -117,7 +116,6 @@ class Roller:
                 d.keep = True
                 keep.remove(d)
 
-    # TODO: doesn't work
     def _drop(self):
         # Find the list of all dice to drop
         drop = sorted(self._dice)[-self._keep_info[2]:] if self._keep_info[1] == 'h' else sorted(self._dice)[:self._keep_info[2]]

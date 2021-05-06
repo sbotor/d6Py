@@ -58,23 +58,19 @@ class Converter():
     def __init__(self, expression: str = ''):
         # Variable definitions
         self.expression: str = expression # Input expression
-        self.converted: str = '' # Data converted into RPN
         self.details: str = '' # Details including dice rolls
+        self.converted: list = [] # Output list of tokens converted into RPN
 
         self._data: str = '' # Expression used in converting
         self._tokens: list = [] # A list of tokens to convert, extracted from the data
-        self.pretty_expr: str = '' # Pretty cleaned-up expression
-        self._output_list: list = [] # Output list that will be converted into the converted string
         self._details_list: list = [] # A list of details to be converted into the details string
         self._op_stack: deque = deque() # RPN stack
         self._arg_c: deque = deque() # RPN function argument counter stack
         self._prev_token: Converter.TokenType = Converter.TokenType.START # Previous token type
 
     def clear(self):
-        self.pretty_expr = ''
         self._data = ''
-        self.converted = ''
-        self._output_list = []
+        self.converted = []
         self._details_list = []
         self._op_stack = deque()
         self._arg_c = deque()
@@ -108,9 +104,9 @@ class Converter():
     
     def _pop_out(self):
         if mathfunc.is_func(self._op_stack[-1]):
-            self._op_stack[-1] += self._arg_c.pop() # Add the number of arguments to the function's name
+            self._op_stack[-1] += str(self._arg_c.pop()) # Add the number of arguments to the function's name
 
-        self._output_list.append(self._op_stack.pop())
+        self.converted.append(self._op_stack.pop())
 
     def _pop_paren(self):
         # Pop everything until a left parenthesis is encountered
@@ -129,7 +125,11 @@ class Converter():
             self._pop_out()
 
     def _pop_arg(self):
-        pass
+        while self._op_stack:
+            if self._op_stack[-1] == '(' and mathfunc.is_func(self._op_stack[-2]):
+                break
+            else:
+                self._pop_out()
 
     def _add_operator(self, operator: str):
         # Pop operators from the top of the stack as long as
@@ -147,7 +147,7 @@ class Converter():
         self._op_stack.append(name)
         self._arg_c.append(1)
     
-    def convert(self, expression: str = None) -> str:
+    def convert(self, expression: str = None) -> list:
         if expression != None:
             self.expression = expression
         
@@ -163,7 +163,7 @@ class Converter():
             # The token is a number
             if _num_regex.match(token):
                 if self._expected(Converter.TokenType.NUM):
-                    self._output_list.append(str(token)) # Add to output
+                    self.converted.append(str(token)) # Add to output
                     self._details_list.append(str(token)) # Add to details
                     self._prev_token = Converter.TokenType.NUM
             
@@ -206,30 +206,31 @@ class Converter():
                 elif token ==',' and self._expected(Converter.TokenType.OPER):
                     self._pop_arg() # Pop the previous sub-expression
                     self._arg_c[-1] += 1 # Increment the argument counter for the current function
-                    self._details_list.append(str(token))
+                    self._details_list.append(str(token) + ' ')
                     self._prev_token = Converter.TokenType.OPER
                 
                 # Number e
                 elif self._e_regex.match(token) and self._expected(Converter.TokenType.NUM):
-                    self._output_list.append(str(math.e))
+                    self.converted.append(str(math.e))
                     self._details_list.append(str(math.e))
                     self._prev_token = Converter.TokenType.NUM
 
             # The token is a die roll
             elif _dice_regex.match(token) and self._expected(Converter.TokenType.NUM):
                 r = dice.Roller(token)
-                self._output_list.append(str(r.roll()))
+                self.converted.append(str(r.roll()))
                 self._details_list.append(r.details)
                 self._prev_token = Converter.TokenType.NUM
 
             # The token is a function
             elif self._func_regex.match(token) and self._expected(Converter.TokenType.FUNC) and mathfunc.is_func(token.lower()):
                 self._add_function(token.lower())
+                self._details_list.append(token.lower())
                 self._prev_token = Converter.TokenType.FUNC
 
             # The token is pi
             elif self._pi_regex.match(token):
-                self._output_list.append(str(math.pi))
+                self.converted.append(str(math.pi))
                 self._details_list.append(str(math.pi))
                 self._prev_token = Converter.TokenType.NUM
 
@@ -247,14 +248,82 @@ class Converter():
             
             self._pop_out()
         
-        # Create the output and return it
-        self.converted = ' '.join(self._output_list)
         self.details = ''.join(self._details_list)
         return self.converted
 
 class Evaluator():
 
-    _func_regex = re.compile(r'^[A-Za-z]{3}[A-Za-z]*$') # Function regex
+    _func_regex = re.compile(r'^([A-Za-z]{3}[A-Za-z]*)(\d+)$') # Function regex
 
-    def __init__(self):
-        pass
+    def __init__(self, tokens = []):
+        # Variable definitions
+        self.tokens = tokens
+        self.result = None # Result of the evaluation
+
+        self._numbers: deque = deque() # A deque of numbers used during evaluation
+
+    def clear(self):
+        self.result = None
+        self._numbers: deque()
+    
+    def evaluate(self, tokens = None) -> float:
+        if tokens != None:
+            self.tokens = tokens
+
+        if not self.tokens:
+            raise ValueError('Nothing to evaluate')
+
+        self.clear()
+
+        # Iterate over all the tokens
+        for token in self.tokens:
+            # A number
+            if _num_regex.match(str(token)):
+                self._numbers.append(float(token))
+            
+            # An operator
+            elif len(token) == 1:
+                n1 = None
+                n2 = None
+                result = None
+                # Regular binary operators
+                if token in '+-*/^%':
+                    n2 = float(self._numbers.pop())
+                    n1 = float(self._numbers.pop())
+                    if token == '+':
+                        result = n1 + n2
+                    elif token == '-':
+                        result = n1 - n2
+                    elif token == '*':
+                        result = n1 * n2
+                    elif token == '/':
+                        result = n1 / n2
+                    else:
+                        result = n1 % n2
+                # Negation
+                elif token == 'n':
+                    result = -float(self._numbers.pop())
+                else:
+                    raise ValueError(f'Invalid token "{token}" during evaluation')
+
+                self._numbers.append(float(result))
+
+            # A function
+            elif self._func_regex.match(str(token)):
+                match = self._func_regex.match(str(token))
+                name = match[1]
+                arg_num = int(match[2])
+                
+                # Check if the function exists and call it providing arguments
+                if mathfunc.is_func(name):
+                    args = [self._numbers.pop() for i in range(arg_num)]
+                    result = mathfunc.funcs[name](args)
+                    self._numbers.append(result)
+                else:
+                    raise ValueError(f'Invalid function "{name}" during evaluation')
+            
+            else:
+                raise ValueError(f'Invalid token "{token}" during evaluation')
+
+        self.result = float(self._numbers.pop())
+        return self.result
