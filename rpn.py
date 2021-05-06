@@ -9,7 +9,7 @@ import mathfunc
 _NEGATION = 'n'
 
 _num_regex = re.compile(r'^\d+(\.\d+)?$') # Number regex
-_dice_regex = dice.Roller.expr_regex # Dice notation regex
+_dice_regex = dice.Roller._dice_regex # Dice notation regex
 
 class Converter():
     

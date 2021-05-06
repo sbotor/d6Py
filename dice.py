@@ -55,26 +55,27 @@ class Die:
 class Roller:
     
     # Dice roll regex
-    expr_regex = re.compile(r'^(\d+)d(\d+)(!)?((k|d)(h|l)?(\d+))?$', re.IGNORECASE)
+    _dice_regex = re.compile(r'^(\d+)?d(\d+)(!)?((k|d)(h|l)?(\d+))?$', re.IGNORECASE)
     
     def __init__(self, expression: str):
-
-        match = self.expr_regex.match(expression)
+        # Variable definitions
+        self.details: str = None # Roll details
+        self.result: int = None # Roll result
+        self._dice: list = None # List of appropriate Dice objects
+        self._starting_dice: int = None # Number of starting dice
+        self._sides: int = None # Number of sides of dice to roll
+        self._exploding: bool = None # Whether the dice can explode
+        self._keep_info: tuple = None # Tuple of (string, string, int) ([k]eep/[d]rop, [h]igh/[l]ow, how_many)
+    
+        
+        match = self._dice_regex.match(expression)
         
         # Extract data from the expression
         if match:
-            # Variable definitions
-            self.details: str = None # Roll details
-            self.result: int = None # Roll result
-            self._dice: list = None # List of appropriate Dice objects
-            self._starting_dice: int = None # Number of starting dice
-            self._sides: int = None # Number of sides of dice to roll
-            self._exploding: bool = None # Whether the dice can explode
-            self._keep_info: tuple = None # Tuple of (string, string, int) ([k]eep/[d]rop, [h]igh/[l]ow, how_many)
             
             #groups = match.groups()
             
-            self._starting_dice = int(match[1])
+            self._starting_dice = int(match[1]) if match[1] else 1
             self._sides = int(match[2])
             self._exploding = match[3] != None
 
