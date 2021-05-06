@@ -101,6 +101,10 @@ class Roller:
     def __str__(self) -> str:
         return self.details
 
+    def __len__(self) -> int:
+        return len(self._dice)
+
+    # TODO: doesn't work
     def _keep(self):
         # Find the list of dice to keep
         keep = sorted(self._dice)[-self._keep_info[2]:] if self._keep_info[1] == 'h' else sorted(self._dice)[:self._keep_info[2]]
@@ -110,9 +114,12 @@ class Roller:
             d.keep = False
         
         # Flag the kept dice
-        for k in keep:
-            self._dice[self._dice.index(k)].keep = True
+        for d in self._dice:
+            if d in keep:
+                d.keep = True
+                keep.remove(d)
 
+    # TODO: doesn't work
     def _drop(self):
         # Find the list of all dice to drop
         drop = sorted(self._dice)[-self._keep_info[2]:] if self._keep_info[1] == 'h' else sorted(self._dice)[:self._keep_info[2]]
@@ -121,9 +128,11 @@ class Roller:
         for d in self._dice:
             d.keep = True
         
-        # Flag the dropped dice
-        for k in keep:
-            self._dice[self._dice.index(k)].keep = False
+        # Flag the kept dice
+        for d in self._dice:
+            if d in drop:
+                d.keep = False
+                drop.remove(d)
 
     def roll(self) -> int:
         self._dice = [Die(self._sides) for i in range(self._starting_dice)] # Fill the list of dice
@@ -148,25 +157,27 @@ class Roller:
                 self.result += d.result
 
         # Fetch details
-        self.details = str(self.result) + '['
+        to_add = [str(self.result) + '[']
+        
         first = True
         for d in self._dice:
             # Skip the plus sign if the die is the first one
             if not first:
-                self.details += '+'
+                to_add.append('+')
             else:
                 first = False
             
-            # Check if the die is kept
+            # Check if the die is not kept
             if not d.keep:
-                self.details += '#'
+                to_add.append('#')
 
             # Add the die's result
-            self.details += str(d)
-            # Check if the die exploded
+            to_add.append(str(d))
+            # Check if the die exploded and ! if it did
             if self._exploding and d.result == d.sides:
-                self.details += '!'
+                to_add.append('!')
 
-        self.details += ']'
+        to_add.append(']')
+        self.details = ''.join(to_add)
 
         return self.result

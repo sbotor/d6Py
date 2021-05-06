@@ -48,29 +48,31 @@ class Converter():
         L_PAR = 4
         FUNC = 5
 
-    def __init__(self, expression: str):
+    def __init__(self, expression: str = ''):
         # Variable definitions
-        self._expr: str = expression # Input expression
+        self.expression: str = expression # Input expression
+        self._data: str = None # Expression used in converting
         self._tokens: list = None # A list of tokens to convert, extracted from the expression
         self.pretty_expr: str = None # Pretty cleaned-up expression
         self.converted: str = None # Data converted into RPN
-        self._op_stack: deque = deque() # RPN stack
-        self._arg_c: deque = deque() # RPN function argument counter stack
+        self._op_stack: deque = None # RPN stack
+        self._arg_c: deque = None # RPN function argument counter stack
         self._prev_token: Converter.TokenType = Converter.TokenType.START # Previous token type
         self.details: str = None # Details including dice rolls
 
     def clear(self):
         self.pretty_expr = None
+        self._data = None
         self.converted = None
-        self._op_stack = deque()
-        self._arg_c = deque()
+        self._op_stack = None
+        self._arg_c = None
         self._prev_token = Converter.TokenType.START
         self.details = None
     
     def _prepare(self):
-        self._expr = self._expr.replace(' ', '') # Remove spaces
-        self._expr = re.sub(r'[\(\)\+\-\*/,\^%]', r' \g<0> ', self._expr) # Divide into tokens by ()+-*/^%,
-        self._tokens = self._expr.split()
+        self._data = self._expr.replace(' ', '') # Remove spaces
+        self._data = re.sub(r'[\(\)\+\-\*/,\^%]', r' \g<0> ', self._data) # Divide into tokens by ()+-*/^%,
+        self._tokens = self._data.split()
     
     def _expected(self, token):
         # A number or a function
@@ -78,6 +80,10 @@ class Converter():
             pass
     
     def convert(self):
+        if not self._expr:
+            raise ValueError('The expression to convert is empty')
+        
+        self.clear()
         self._prepare()
 
         for token in self._tokens:
@@ -103,8 +109,12 @@ class Converter():
                 pass
 
             else:
-                raise ValueError('Unexpected token "{}" during conversion'.format(token))
+                raise ValueError(f'Unexpected token "{token}" during conversion')
     
         # Check if the last token was a number or right parentesis
         if self._prev_token not in (Converter.TokenType.NUM, Converter.TokenType.R_PAR):
-            raise ValueError('Unexpected token "{}" at the end of the expression'.format(token))
+            raise ValueError(f'Unexpected token "{token}" at the end of the expression')
+
+    def convert(self, expression: str):
+        self._epxr = expression
+        self.convert()
