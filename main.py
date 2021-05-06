@@ -6,8 +6,10 @@ if __name__ == '__main__':
     r.roll()
     print(r, '\n')
     
-    conv = Converter('1+(2d6-4)*3')
-    conv._prepare()
+    conv = Converter('e^4')
+    conv.convert()
     print(conv._tokens)
+    print(conv.converted)
+    print(conv.details)
     #print(conv._precedence.get('/'))
     #conv.convert()

@@ -48,8 +48,6 @@ class Die:
         if self.sides > 1:
             self.result = random.randint(1, self.sides)
             return self.result
-        elif self.sides == 1:
-            return 1
         else:
             raise ValueError('Incorrect number of sides')
 
