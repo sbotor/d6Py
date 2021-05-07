@@ -85,7 +85,7 @@ class Roller:
                 
                 # Check if keep/drop number is appropriate
                 if keep_info[2] > self._starting_dice:
-                    raise ValueError('Invalid keep/drop number of dice')
+                    raise ValueError('Invalid number of keep/drop dice')
                 
                 # Check if k# or d# shorthand used
                 if not keep_info[1]:

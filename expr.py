@@ -78,7 +78,7 @@ class Converter():
         self.details = ''
     
     def _prepare(self):
-        self._data = self.expression.replace(' ', '') # Remove spaces
+        self._data = ''.join(self.expression.split()) # Remove spaces
         self._data = re.sub(r'[\(\)\+\-\*/,\^%]', r' \g<0> ', self._data) # Divide into tokens by ()+-*/^%,
         self._tokens = self._data.split()
     
@@ -187,7 +187,7 @@ class Converter():
                         self._details_list.append('-')
                         self._prev_token = Converter.TokenType.NEG
                     else:
-                        raise ValueError(f'Unexpected token "{token}" during conversion')
+                        raise ValueError(f'Unexpected token "{token}" during parsing')
                 
                 # Left parenthesis
                 elif token == '(' and self._expected(Converter.TokenType.L_PAR):
@@ -234,7 +234,7 @@ class Converter():
                 self._prev_token = Converter.TokenType.NUM
 
             else:
-                raise ValueError(f'Unexpected token "{token}" during conversion')
+                raise ValueError(f'Unexpected token "{token}" during parsing')
     
         # Check if the last token was a number or right parenthesis
         if self._prev_token not in (Converter.TokenType.NUM, Converter.TokenType.R_PAR):
@@ -295,6 +295,8 @@ class Evaluator():
                     elif token == '*':
                         result = n1 * n2
                     elif token == '/':
+                        if n2 == 0:
+                            raise ValueError('Division by zero is sadly impossible, sorry.')
                         result = n1 / n2
                     else:
                         result = n1 % n2
@@ -315,7 +317,7 @@ class Evaluator():
                 # Check if the function exists and call it providing arguments
                 if mathfunc.is_func(name):
                     args = [self._numbers.pop() for i in range(arg_num)]
-                    result = mathfunc.funcs[name](args)
+                    result = mathfunc.func(name, args)
                     self._numbers.append(result)
                 else:
                     raise ValueError(f'Invalid function "{name}" during evaluation')
@@ -323,7 +325,9 @@ class Evaluator():
             else:
                 raise ValueError(f'Invalid token "{token}" during evaluation')
 
-        self.result = float(self._numbers.pop())
+        result_num = float(self._numbers.pop())
+        self.result = int(result_num) if result_num.is_integer() else result_num
+        
         return self.result
 
 class Calculator:
