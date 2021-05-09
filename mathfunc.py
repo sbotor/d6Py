@@ -25,7 +25,7 @@ def is_func(name: str) -> bool:
     return True if name in funcs.keys() else False
 
 def func(name: str, arg_list) -> float:
-    found = funcs[name]
+    found = funcs.get(name, False)
     if found:
         # Single argument functions
         if found[1] == '1' and len(arg_list) == 1:

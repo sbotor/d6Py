@@ -4,7 +4,7 @@ import re
 from expr import Calculator
 
 START_SYMBOL = '='
-repeat_regex = re.compile(r'^[xr](\d+)(.+)$', re.IGNORECASE)
+repeat_regex = re.compile(r'^\s*[xr](\d+)(.+)$', re.IGNORECASE)
 
 client = dc.Client()
 
@@ -18,7 +18,7 @@ def calculate(expression: str) -> str:
     return f'Result: {calc.result}\nDetails: {calc.details}'
 
 def repeat(times: int, expression: str) -> str:
-    REPEAT_LIMIT = 10
+    REPEAT_LIMIT = 15
     
     if times < 1:
         raise ValueError('Incorrect repeat number')
@@ -29,7 +29,7 @@ def repeat(times: int, expression: str) -> str:
         res_list = []
         for i in range(1, times + 1):
             calc.calculate()
-            res = f'{i}. Result: {calc.result}\nDetails: {calc.details}'
+            res = f'[{i}]. Result: {calc.result}\nDetails: {calc.details}'
             res_list.append(res)
 
         return '\n---\n'.join(res_list)
