@@ -12,12 +12,12 @@ client = dc.Client()
 async def on_ready():
     print(f'Logged in as {client.user}. Ready.')
 
-def calculate(expression: str) -> str:
+def calculate(expression):
     calc = Calculator(expression)
     calc.calculate()
     return f'Result: {calc.result}\nDetails: {calc.details}'
 
-def repeat(times: int, expression: str) -> str:
+def repeat(times, expression):
     REPEAT_LIMIT = 15
     
     if times < 1:

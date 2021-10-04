@@ -55,17 +55,17 @@ class Converter():
         FUNC = 5 # A function name
         NEG = 6 # Negation
 
-    def __init__(self, expression: str = None):
+    def __init__(self, expression = None):
         # Variable declarations
-        self.expression: str = expression if expression else '' # Input expression
-        self.details: str = '' # Details including dice rolls
-        self.converted: list = [] # Output list of tokens converted into RPN
+        self.expression = expression if expression else '' # Input expression
+        self.details = '' # Details including dice rolls
+        self.converted = [] # Output list of tokens converted into RPN
 
-        self._data: str = '' # Expression used in converting
-        self._tokens: list = [] # A list of tokens to convert, extracted from the data
-        self._details_list: list = [] # A list of details to be converted into the details string
-        self._op_stack: deque = deque() # RPN stack
-        self._arg_c: deque = deque() # RPN function argument counter stack
+        self._data = '' # Expression used in converting
+        self._tokens = [] # A list of tokens to convert, extracted from the data
+        self._details_list = [] # A list of details to be converted into the details string
+        self._op_stack = deque() # RPN stack
+        self._arg_c = deque() # RPN function argument counter stack
         self._prev_token: Converter.TokenType = Converter.TokenType.START # Previous token type
 
     def clear(self):
@@ -82,7 +82,7 @@ class Converter():
         self._data = re.sub(r'[\(\)\+\-\*/,\^%]', r' \g<0> ', self._data) # Divide into tokens by ()+-*/^%,
         self._tokens = self._data.split()
     
-    def _expected(self, token) -> bool:
+    def _expected(self, token):
         # A number or a function
         if token in (Converter.TokenType.NUM, Converter.TokenType.FUNC):
             return self._prev_token in (Converter.TokenType.START, Converter.TokenType.OPER, Converter.TokenType.L_PAR, Converter.TokenType.NEG)
@@ -131,7 +131,7 @@ class Converter():
             else:
                 self._pop_out()
 
-    def _add_operator(self, operator: str):
+    def _add_operator(self, operator):
         # Pop operators from the top of the stack as long as
         # - they have higher or equal precedence,
         # - aren't the left parenthesis,
@@ -143,11 +143,11 @@ class Converter():
         # Add the operator passed as the argument
         self._op_stack.append(operator)
     
-    def _add_function(self, name: str):
+    def _add_function(self, name):
         self._op_stack.append(name)
         self._arg_c.append(1)
     
-    def convert(self, expression: str = None) -> list:
+    def convert(self, expression = None) -> list:
         self.expression = expression if expression else self.expression
         
         if not self.expression:
@@ -265,7 +265,7 @@ class Evaluator():
         self.result = None
         self._numbers: deque()
     
-    def evaluate(self, tokens = None) -> float:
+    def evaluate(self, tokens = None):
         self.tokens = tokens if tokens else self.tokens
 
         if not self.tokens:
@@ -332,7 +332,7 @@ class Evaluator():
 
 class Calculator:
 
-    def __init__(self, expression: str = None):
+    def __init__(self, expression = None):
         # Variable declarations
         self.expression: str = expression if expression else '' # Expression to calculate
         self.result: float = None # Result of the calculations
@@ -342,7 +342,7 @@ class Calculator:
         self.result = None
         self.details = ''
     
-    def calculate(self, expression: str = None) -> float:
+    def calculate(self, expression = None):
         self.expression: str = expression if expression else self.expression
 
         self.clear()

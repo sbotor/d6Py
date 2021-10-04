@@ -1,3 +1,7 @@
+#############################################################
+# MAYBE THIS WILL BE DONE SOMEDAY BUT THAT DAY IS NOT TODAY #
+#############################################################
+
 from random import choices
 
 class InitiativeStack:

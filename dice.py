@@ -9,9 +9,9 @@ class Die:
             raise ValueError('Invalid number of sides')
 
         # Variable declarations
-        self.sides: int = sides # How many sides
-        self.keep: bool = keep # Should the die be kept in a roll
-        self.result: int = None # The result
+        self.sides = sides # How many sides
+        self.keep = keep # Should the die be kept in a roll
+        self.result = None # The result
     
     def __str__(self):
         return str(self.result)
@@ -57,15 +57,15 @@ class Roller:
     # Dice roll regex
     _dice_regex = re.compile(r'^(\d+)?d(\d+)(!)?((k|d)(h|l)?(\d+))?$', re.IGNORECASE)
     
-    def __init__(self, expression: str):
+    def __init__(self, expression):
         # Variable declarations
-        self.details: str = '' # Roll details
-        self.result: int = None # Roll result
-        self._dice: list = [] # List of appropriate Dice objects
-        self._starting_dice: int = None # Number of starting dice
-        self._sides: int = None # Number of sides of dice to roll
-        self._exploding: bool = None # Whether the dice can explode
-        self._keep_info: tuple = None # Tuple of (string, string, int) ([k]eep/[d]rop, [h]igh/[l]ow, how_many)
+        self.details = '' # Roll details
+        self.result = None # Roll result
+        self._dice = [] # List of appropriate Dice objects
+        self._starting_dice = None # Number of starting dice
+        self._sides = None # Number of sides of dice to roll
+        self._exploding = None # Whether the dice can explode
+        self._keep_info = None # Tuple of (string, string, int) ([k]eep/[d]rop, [h]igh/[l]ow, how_many)
     
         
         match = self._dice_regex.match(expression)
@@ -97,10 +97,10 @@ class Roller:
         else:
             raise ValueError('Invalid dice expression')
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.details
 
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self._dice)
 
     def _keep(self):
@@ -131,7 +131,7 @@ class Roller:
                 d.keep = False
                 drop.remove(d)
 
-    def roll(self) -> int:
+    def roll(self):
         self._dice = [Die(self._sides) for i in range(self._starting_dice)] # Fill the list of dice
         
         # Roll the dice

@@ -21,10 +21,10 @@ funcs = {
     #'tan': (math.tan, '1')
 }
 
-def is_func(name: str) -> bool:
+def is_func(name):
     return True if name in funcs.keys() else False
 
-def func(name: str, arg_list) -> float:
+def func(name, arg_list):
     found = funcs.get(name, False)
     if found:
         # Single argument functions
